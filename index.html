@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Expense Tracker · Made by Azariya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07110f;--panel:#0d1b18;--line:#2b3b34;--gold:#d8b46a;--gold2:#f3dfa6;--ink:#f1ece0;--mute:#9aa79f;--red:#ff4d4d;--ok:#5fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 700px at 80% -10%,#12332b,transparent),var(--bg);color:var(--ink);font:400 16px/1.5 Manrope,system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+main{position:relative;z-index:1;max-width:1040px;margin:auto;padding:28px 18px 60px}
+h1,h2,.num{font-family:"Cormorant Garamond",Georgia,serif}
+h1{font-size:clamp(2.6rem,8vw,5rem);line-height:1;margin:.2em 0 .1em;font-weight:700;background:linear-gradient(100deg,var(--gold),var(--gold2),var(--gold),#a9843f);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
+@keyframes shine{to{background-position:-250% 0}}
+.sub{color:var(--mute);max-width:52ch;margin:0 0 26px;animation:rise 1.2s .2s both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:linear-gradient(160deg,#102620,var(--panel));border:1px solid var(--line);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+.card:hover{transform:translateY(-4px);border-color:var(--gold)}
+.card::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(243,223,166,.12),transparent);transform:skewX(-20deg);animation:sweep 5s infinite}
+@keyframes sweep{60%,100%{left:130%}}
+.lbl{color:var(--mute);font-size:.85rem}
+.num{font-size:2.6rem;font-weight:700;line-height:1.1}
+.gold{color:var(--gold2)}.bad{color:var(--red)}.good{color:var(--ok)}
+.row{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:760px){.row{grid-template-columns:1fr}}
+h2{margin:0 0 12px;font-size:1.7rem;color:var(--gold2)}
+form{display:grid;gap:10px}
+input,select,button{font:inherit;color:var(--ink);background:#0a1512;border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+button{cursor:pointer;font-weight:600;transition:transform .2s,box-shadow .3s}
+.btn{background:linear-gradient(100deg,#b8913f,var(--gold2));color:#1a1405;border:0}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(216,180,106,.35)}
+.btn.alt{background:transparent;color:var(--gold2);border:1px solid var(--gold)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gauge{display:grid;place-items:center;position:relative}
+.gauge svg{width:210px;height:210px;transform:rotate(-90deg)}
+.gauge circle{fill:none;stroke-width:14;stroke-linecap:round}
+#arc{stroke:url(#g);stroke-dasharray:528;stroke-dashoffset:528;transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1),stroke .4s}
+.gtxt{position:absolute;text-align:center}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:90px 1fr 70px;gap:8px;align-items:center;font-size:.9rem}
+.track{height:10px;background:#0a1512;border-radius:9px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#8d6c2b,var(--gold2));border-radius:9px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:340px;overflow:auto}
+li{display:flex;justify-content:space-between;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#0a1512;animation:slide .5s both}
+@keyframes slide{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+li small{color:var(--mute);display:block}
+.empty{color:var(--mute);text-align:center;padding:18px}
+footer{text-align:center;margin-top:44px;color:var(--mute)}
+footer b{color:var(--gold2);font-family:"Cormorant Garamond",serif;font-size:1.3rem;letter-spacing:.04em}
+#alarm{position:fixed;inset:0;z-index:50;display:none;place-items:center;background:rgba(40,0,0,.86);padding:18px}
+#alarm.on{display:grid;animation:flash .5s infinite alternate}
+@keyframes flash{from{background:rgba(40,0,0,.88)}to{background:rgba(120,0,0,.92)}}
+.box{background:#150707;border:2px solid var(--red);border-radius:20px;padding:30px;max-width:460px;text-align:center;animation:shake .5s,pop .4s;box-shadow:0 0 70px rgba(255,60,60,.55)}
+@keyframes shake{20%{transform:translateX(-14px)}40%{transform:translateX(14px)}60%{transform:translateX(-9px)}80%{transform:translateX(9px)}}
+@keyframes pop{from{scale:.6;opacity:0}}
+.siren{font-size:3.4rem;animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{50%{transform:scale(1.25) rotate(14deg)}}
+.box h2{color:var(--red);font-size:2.2rem}
+body.lock .gauge svg{animation:shake .5s}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+.num{font-family:Manrope,system-ui,sans-serif;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.acct{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(120deg,#17382f,#0d1b18 60%,#2a2210)}
+.acct>div:nth-child(2){flex:1;min-width:200px}
+.chip{width:46px;height:34px;border-radius:7px;background:linear-gradient(135deg,#8d6c2b,var(--gold2),#8d6c2b);box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+.badge{border:1px solid var(--gold);color:var(--gold2);border-radius:99px;padding:5px 14px;font-size:.8rem}
+.ic{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:700;background:#14261f}
+.ic.income{color:var(--ok)}.ic.expense{color:var(--red)}
+.tx{flex:1}
+li{align-items:center}
+html{-webkit-text-size-adjust:100%}
+body{min-height:100vh;min-height:100dvh}
+main{width:100%;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+.gauge{display:flex;flex-direction:column;align-items:center;gap:6px}
+.gh{align-self:flex-start;margin:0}
+.gw{position:relative;display:grid;place-items:center;width:min(220px,62vw)}
+.gauge svg{width:100%;height:auto;aspect-ratio:1}
+.gtxt{position:absolute;inset:0;display:grid;place-content:center}
+li,.tx{min-width:0}.tx{overflow-wrap:anywhere}
+#alarm{overflow:auto}.box{width:100%}
+@media(hover:none){.card:hover{transform:none;border-color:var(--line)}.btn:hover{transform:none;box-shadow:none}}
+@media(max-width:480px){.two{grid-template-columns:1fr}.num{font-size:2.1rem}.card{padding:16px}h2{font-size:1.45rem}.bar{grid-template-columns:76px 1fr 56px;font-size:.82rem}main{padding-top:18px;padding-bottom:44px}.box{padding:22px}.acct{gap:12px}li{padding:10px 12px}}
+@media(max-width:340px){.bar{grid-template-columns:62px 1fr 48px}.num{font-size:1.8rem}}
+@media(min-width:1200px){main{max-width:1180px}}
+@media(min-width:1700px){html{font-size:18px}main{max-width:1320px}}
+@media(max-height:500px) and (orientation:landscape){.box{max-height:94vh;overflow:auto;padding:16px}.siren{font-size:2rem}.box h2{font-size:1.5rem}}
+.warn{display:flex;gap:12px;align-items:center;margin:0 0 14px;padding:14px 18px;border:1px solid #e0a32e;border-radius:14px;background:linear-gradient(100deg,rgba(224,163,46,.2),rgba(224,163,46,.06));color:#ffd98a;animation:wpulse 1.6s infinite}
+.warn[hidden]{display:none}
+@keyframes wpulse{50%{box-shadow:0 0 28px rgba(224,163,46,.45)}}
+</style></head><body>
+<canvas id="bg"></canvas>
+<main>
+<h1>Expense Tracker</h1>
+<p class="sub">Your money, protected. Deposits arrive from your banks automatically, you can only withdraw, and any withdrawal above your income is blocked with an alarm, and at least 300 ETB must always stay in your account.</p>
+
+<div id="warn" class="warn" role="alert" hidden></div>
+<div class="acct card"><div class="chip"></div><div><b>Azariya</b><div class="lbl">Commercial Bank of Ethiopia · Savings ••4821</div></div><span class="badge">Withdrawals only</span></div>
+<section class="grid" style="margin-top:14px">
+<div class="card"><div class="lbl">Total received</div><div class="num gold" id="inc">0</div><div class="lbl">ETB</div></div>
+<div class="card"><div class="lbl">Total withdrawn</div><div class="num" id="exp">0</div><div class="lbl">ETB</div></div>
+<div class="card"><div class="lbl">Available balance</div><div class="num good" id="bal">0</div><div class="lbl">ETB</div></div>
+</section>
+
+<section class="row">
+<div class="card"><h2>Withdraw funds</h2>
+<form id="f">
+<div class="two"><select id="acct" aria-label="Withdraw from"><option>From: CBE Savings ••4821</option></select>
+<select id="cat" aria-label="Category"><option>Food</option><option>Transport</option><option>School</option><option>Bills</option><option>Fun</option><option>Other</option></select></div>
+<input id="amt" type="number" min="1" step="any" placeholder="Amount to withdraw (ETB)" required>
+<input id="note" placeholder="Note (optional)">
+<button class="btn" type="submit">Withdraw</button>
+<button type="button" id="reset">Reset demo data</button>
+</form></div>
+<div class="card gauge"><h2 class="gh">Income used</h2>
+<div class="gw"><svg viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8913f"/><stop offset="1" stop-color="#f3dfa6"/></linearGradient></defs>
+<circle cx="100" cy="100" r="84" stroke="#14261f"/><circle id="arc" cx="100" cy="100" r="84"/></svg>
+<div class="gtxt"><div class="num gold" id="pct">0%</div><div class="lbl" id="state">Safe</div></div></div></div>
+</section>
+
+<section class="row">
+<div class="card"><h2>Spending by category</h2><div class="bars" id="bars"></div></div>
+<div class="card"><h2>Transaction history</h2><ul id="list"></ul></div>
+</section>
+
+<footer>Designed and built by <b>Azariya</b><br><span class="lbl">School assignment · Expense Tracker</span></footer>
+</main>
+
+<div id="alarm" role="alertdialog" aria-live="assertive"><div class="box">
+<div class="siren">🚨</div><h2>Transaction blocked</h2>
+<p id="amsg"></p><button class="btn" id="close">I understand</button></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let tx=[];
+try{tx=JSON.parse(localStorage.getItem('et3')||'null')||[]}catch(e){}
+const D=86400000,N=Date.now();
+const seed=()=>[
+{t:'income',c:'Commercial Bank of Ethiopia',a:2000,n:'Received from CBE',d:N-14*D},
+{t:'income',c:'Telebirr',a:300,n:'Received via Telebirr',d:N-11*D},
+{t:'income',c:'Commercial Bank of Ethiopia',a:500,n:'Received from CBE',d:N-8*D},
+{t:'income',c:'Telebirr',a:200,n:'Received via Telebirr',d:N-6*D},
+{t:'income',c:'Commercial Bank of Ethiopia',a:400,n:'Received from CBE',d:N-3*D},
+{t:'income',c:'Telebirr',a:100,n:'Received via Telebirr',d:N-1*D}];
+if(!tx.length)tx=seed();
+const save=()=>{try{localStorage.setItem('et3',JSON.stringify(tx))}catch(e){}};
+const sum=t=>tx.filter(x=>x.t===t).reduce((s,x)=>s+x.a,0);
+const fmt=n=>Math.round(n).toLocaleString();
+const cur={};
+function count(id,to){const el=$(id),from=cur[id]||0;cur[id]=to;const s=performance.now();
+ (function f(now){const p=Math.min(1,(now-s)/900),e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(f)})(s)}
+function render(){
+ const i=sum('income'),e=sum('expense'),b=i-e,p=i?Math.min(100,e/i*100):0;
+ count('inc',i);count('exp',e);count('bal',b);
+ $('bal').className='num '+(b>0?'good':'bad');
+ $('arc').style.strokeDashoffset=528-528*p/100;
+ $('arc').style.stroke=p>=100?'var(--red)':'';
+ $('pct').textContent=Math.round(p)+'%';
+ $('state').textContent=p>=100?'Limit reached':p>=80?'Careful':'Safe';
+ const cats={};tx.filter(x=>x.t==='expense').forEach(x=>cats[x.c]=(cats[x.c]||0)+x.a);
+ const mx=Math.max(1,...Object.values(cats));
+ const fp=i?(cats.Fun||0)/i*100:0,w=$('warn');
+ if(fp>50){w.hidden=false;w.innerHTML='⚠️ <span><b>Spending warning:</b> you have used '+Math.round(fp)+'% of your money on Fun. Keep it under 50%.</span>'}else w.hidden=true;
+ $('bars').innerHTML=Object.keys(cats).length?Object.entries(cats).map(([k,v])=>`<div class="bar"><span>${k}</span><div class="track"><div class="fill" data-w="${v/mx*100}"></div></div><span>${fmt(v)}</span></div>`).join(''):'<div class="empty">No spending yet.</div>';
+ requestAnimationFrame(()=>document.querySelectorAll('.fill').forEach(f=>f.style.width=f.dataset.w+'%'));
+ $('list').innerHTML=tx.slice().sort((a,b)=>b.d-a.d).map(x=>`<li><span class="ic ${x.t}">${x.t==='income'?'↓':'↑'}</span><span class="tx">${x.c}<small>${x.n?x.n.replace(/[<>&]/g,''):''} · ${new Date(x.d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</small></span><b class="${x.t==='income'?'good':''}">${x.t==='income'?'+':''}${fmt(x.a)} ETB</b></li>`).join('');
+}
+function beep(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+ o.type='sawtooth';o.connect(g);g.connect(c.destination);g.gain.value=.12;
+ for(let k=0;k<6;k++)o.frequency.setValueAtTime(k%2?600:950,c.currentTime+k*.3);
+ o.start();o.stop(c.currentTime+1.8)}catch(e){}}
+function block(a){const over=sum('expense')+a-sum('income');
+ $('amsg').innerHTML=`Warning: this withdrawal of <b>${fmt(a)} ETB</b> is more than your income of <b>${fmt(sum('income'))} ETB</b> allows. You would overspend by <b class="bad">${fmt(over)} ETB</b>. The transaction was not made.`;
+ $('alarm').classList.add('on');document.body.classList.add('lock');beep();if(navigator.vibrate)navigator.vibrate([300,100,300]);}
+function reserve(a){const left=sum('income')-sum('expense');
+ $('amsg').innerHTML=`You need at least <b>300 ETB</b> left in your account, just in case. This withdrawal of <b>${fmt(a)} ETB</b> would leave you with only <b class="bad">${fmt(left-a)} ETB</b>. The most you can withdraw now is <b>${fmt(Math.max(0,left-300))} ETB</b>. The transaction was not made.`;
+ $('alarm').classList.add('on');document.body.classList.add('lock');beep();if(navigator.vibrate)navigator.vibrate([300,100,300]);}
+function add(t,c,a,n){
+ if(!(a>0))return;
+ if(t==='expense'&&sum('expense')+a>sum('income')){block(a);return}
+ if(t==='expense'&&sum('income')-sum('expense')-a<300){reserve(a);return}
+ tx.push({t,c:t==='income'?'Income':c,a,n,d:Date.now()});save();render();
+ if(t==='expense'&&c==='Fun'&&tx.filter(x=>x.c==='Fun').reduce((s,x)=>s+x.a,0)>sum('income')/2){scrollTo({top:0,behavior:'smooth'});if(navigator.vibrate)navigator.vibrate(200)}}
+$('f').onsubmit=e=>{e.preventDefault();add('expense',$('cat').value,+$('amt').value,$('note').value);$('amt').value='';$('note').value=''};
+$('reset').onclick=()=>{tx=seed();save();render()};
+$('close').onclick=()=>{$('alarm').classList.remove('on');document.body.classList.remove('lock')};
+render();
+// gold dust background
+const cv=$('bg'),x=cv.getContext('2d');let W,H,P=[];
+function size(){W=cv.width=innerWidth;H=cv.height=innerHeight}size();addEventListener('resize',size);
+for(let i=0;i<70;i++)P.push({x:Math.random()*2e3,y:Math.random()*1200,r:Math.random()*2+.4,v:Math.random()*.4+.1,a:Math.random()});
+(function loop(){x.clearRect(0,0,W,H);P.forEach(p=>{p.y-=p.v;p.a+=.02;if(p.y<-5){p.y=H+5;p.x=Math.random()*W}
+ x.fillStyle=`rgba(243,223,166,${.15+.35*Math.abs(Math.sin(p.a))})`;x.beginPath();x.arc(p.x%W,p.y,p.r,0,7);x.fill()});requestAnimationFrame(loop)})();
+</script></body></html>
